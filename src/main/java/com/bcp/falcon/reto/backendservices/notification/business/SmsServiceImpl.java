@@ -125,19 +125,29 @@ public class SmsServiceImpl implements SmsService {
 
         NotificationModel notificationModel = notificationRepository.findByCode(code);
 
-        UserModel userModel = userUtil.getUser(notificationModel.getUser());
+        if (notificationModel != null) {
 
-        String templateName = notificationModel.getTemplateName();
+            UserModel userModel = userUtil.getUser(notificationModel.getUser());
 
-        if (templateName.equals(SmsTypes.OTP.getDescription())) {
+            String templateName = notificationModel.getTemplateName();
 
-            UserOtpModel userOtpModel = userOtpRepository.findByNotificationId(notificationModel.getId());
-            response = buildOtpMessage(userModel.getName() + " " + userModel.getLastName(), userOtpModel.getOtp());
+            if (templateName.equals(SmsTypes.OTP.getDescription())) {
 
-        } else if (templateName.equals(SmsTypes.PAYMENT.getDescription())) {
+                UserOtpModel userOtpModel = userOtpRepository.findByNotificationId(notificationModel.getId());
+                response = buildOtpMessage(userModel.getName() + " " + userModel.getLastName(), userOtpModel.getOtp());
 
-            PaymentModel paymentModel = paymentRepository.findByNotificationId(notificationModel.getId());
-            response = buildPaymentMessage(paymentModel.getOperationCode(), paymentModel.getPayerName(), paymentModel.getPaymentDate());
+            } else if (templateName.equals(SmsTypes.PAYMENT.getDescription())) {
+
+                PaymentModel paymentModel = paymentRepository.findByNotificationId(notificationModel.getId());
+                response = buildPaymentMessage(paymentModel.getOperationCode(), paymentModel.getPayerName(), paymentModel.getPaymentDate());
+            } else {
+                response = "El template no existe";
+            }
+
+            return response;
+
+        } else {
+            response = "El código no existe";
         }
 
         return response;

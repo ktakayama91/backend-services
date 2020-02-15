@@ -1,7 +1,10 @@
 package com.bcp.falcon.reto.backendservices.security.expose.web;
 
 
+import java.security.Principal;
+
 import com.bcp.falcon.reto.backendservices.security.business.OtpServiceImpl;
+import com.bcp.falcon.reto.backendservices.security.repository.model.UserSessionModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,9 +28,9 @@ public class OtpRestService {
     @RequestMapping(value = "/validate/{otp}", method = RequestMethod.GET)
     public boolean validateOtp(@PathVariable String otp) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String name = auth.getName();
+        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
 
-        return otpServiceImpl.validateOtp(name, otp);
+        return otpServiceImpl.validateOtp(userSessionModel.getUsername(), otp);
     }
 
 }

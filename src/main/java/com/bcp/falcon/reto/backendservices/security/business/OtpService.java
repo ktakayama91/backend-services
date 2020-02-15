@@ -8,5 +8,5 @@ public interface OtpService {
 
     String generateOtp(String username);
 
-    boolean validateOtp(String name, String otp);
+    boolean validateOtp(String username, String otp);
 }

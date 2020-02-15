@@ -5,14 +5,22 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.Timestamp;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import com.bcp.falcon.reto.backendservices.customer.business.CustomerService;
+import com.bcp.falcon.reto.backendservices.customer.repository.model.CustomerModel;
+import com.bcp.falcon.reto.backendservices.notification.expose.web.Request.EmailWelcomeRequest;
 import com.bcp.falcon.reto.backendservices.notification.model.UserModel;
-import com.bcp.falcon.reto.backendservices.notification.repository.model.NotificationModel;
-import com.bcp.falcon.reto.backendservices.notification.repository.NotificationRepository;
+import com.bcp.falcon.reto.backendservices.notification.repository.EmailNotificationRepository;
+import com.bcp.falcon.reto.backendservices.notification.repository.model.EmailNotificationModel;
 import com.bcp.falcon.reto.backendservices.notification.util.constants.EmailTypes;
+import com.bcp.falcon.reto.backendservices.payment.business.PaymentService;
+import com.bcp.falcon.reto.backendservices.payment.repository.model.PaymentModel;
 import com.bcp.falcon.reto.backendservices.notification.util.constants.NotificationTypes;
 import com.bcp.falcon.reto.backendservices.notification.util.user.UserUtil;
 
@@ -22,6 +30,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring5.SpringTemplateEngine;
 
 /**
  * @author Kei Takayama
@@ -35,7 +45,10 @@ public class EmailServiceImpl implements EmailService {
     private String from;
 
     @Value("${notification.mail.welcome.subject}")
-    private String subject;
+    private String welcomeSubject;
+
+    @Value("${notification.mail.payment.subject}")
+    private String paymentSubject;
 
     @Value("${notification.mail.welcome.template}")
     private String welcomeTemplate;
@@ -47,94 +60,149 @@ public class EmailServiceImpl implements EmailService {
     public JavaMailSender emailSender;
 
     @Autowired
-    private ResourceLoader resourceLoader;
+    private EmailNotificationRepository emailNotificationRepository;
 
     @Autowired
-    private NotificationRepository notificationRepository;
+    private PaymentService paymentService;
+    @Autowired
+    private CustomerService customerService;
 
     @Autowired
     private UserUtil userUtil;
 
-    @Override
-    public String sendEmail(String username, String emailType) {
+    @Autowired
+    private SpringTemplateEngine templateEngine;
 
-        UserModel userModel = userUtil.getUser(username);
+    @Override
+    public String sendWelcomeEmail(String username, EmailWelcomeRequest emailWelcomeRequest) {
 
         MimeMessage message = emailSender.createMimeMessage();
-        NotificationModel notificationModel = new NotificationModel();
-        notificationModel.setCode(UUID.randomUUID().toString());
-        notificationModel.setNotificationType(NotificationTypes.EMAIL.getCode());
+
+
+        EmailNotificationModel emailNotificationModel = new EmailNotificationModel();
+        emailNotificationModel.setCode(UUID.randomUUID().toString());
+
+        CustomerModel customerModel = new CustomerModel();
+        customerModel.setName(emailWelcomeRequest.getName());
+        customerModel.setLastName(emailWelcomeRequest.getLastName());
+        customerModel.setEmail(emailWelcomeRequest.getReceiptEmail());
+
+        Long customerId = customerService.saveCustomer(customerModel);
 
         try {
-            message.addRecipient(MimeMessage.RecipientType.TO, new InternetAddress(userModel.getEmail()));
+            message.addRecipient(MimeMessage.RecipientType.TO, new InternetAddress(emailWelcomeRequest.getReceiptEmail()));
             message.addFrom(new InternetAddress[]{new InternetAddress(from)});
-            message.setSubject(subject, "UTF-8");
+            message.setSubject(welcomeSubject, "UTF-8");
 
-            if (emailType.equals(EmailTypes.WELCOME.getCode())) {
-                message.setContent(buildWelcomeMailBody(userModel.getName() + " " + userModel.getLastName()),
-                        "text/html; charset=utf-8");
 
-                notificationModel.setTemplateName(welcomeTemplate);
-            } else if (emailType.equals(EmailTypes.PAYMENT.getCode())) {
-                message.setContent(buildPaymentMailBody(), "text/html; charset=utf-8");
+            message.setContent(buildWelcomeMailBody(emailWelcomeRequest.getName() + " " + emailWelcomeRequest.getLastName()),
+                    "text/html; charset=utf-8");
 
-                notificationModel.setTemplateName(paymentTemplate);
-            }
+            emailNotificationModel.setNotificationType(NotificationTypes.EMAIL.getCode());
+            emailNotificationModel.setTemplateName(welcomeTemplate);
+            emailNotificationModel.setRecipientEmail(emailWelcomeRequest.getReceiptEmail());
+            emailNotificationModel.setRecipientUserId(customerId);
 
-//            emailSender.send(message);
-            notificationModel.setSentDate(new Timestamp(System.currentTimeMillis()));
+            emailSender.send(message);
 
-            notificationRepository.save(notificationModel);
+            emailNotificationModel.setSentDate(new Timestamp(System.currentTimeMillis()));
+
+            emailNotificationRepository.save(emailNotificationModel);
 
         } catch (MessagingException e) {
             e.printStackTrace();
         }
 
-        return notificationModel.getCode();
+        return emailNotificationModel.getCode();
+    }
+
+    @Override
+    public String sendPaymentEmail(String username) {
+
+        UserModel userModel = userUtil.getUser(username);
+
+        List<PaymentModel> paymentModels = paymentService.getPayments(userModel.getEmail());
+
+        MimeMessage message = emailSender.createMimeMessage();
+
+        EmailNotificationModel emailNotificationModel = new EmailNotificationModel();
+        emailNotificationModel.setCode(UUID.randomUUID().toString());
+        emailNotificationModel.setNotificationType(NotificationTypes.EMAIL.getCode());
+        emailNotificationModel.setRecipientEmail(userModel.getEmail());
+
+        try {
+            message.addRecipient(MimeMessage.RecipientType.TO, new InternetAddress(userModel.getEmail()));
+            message.addFrom(new InternetAddress[]{new InternetAddress(from)});
+            message.setSubject(paymentSubject, "UTF-8");
+
+            message.setContent(buildPaymentMailBody(userModel.getName(), paymentModels), "text/html; charset=utf-8");
+
+            emailNotificationModel.setTemplateName(paymentTemplate);
+
+            emailSender.send(message);
+
+            emailNotificationModel.setSentDate(new Timestamp(System.currentTimeMillis()));
+
+            emailNotificationRepository.save(emailNotificationModel);
+
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+
+        return emailNotificationModel.getCode();
     }
 
     @Override
     public String retrieveEmail(String username, String code) {
         String response = null;
 
-        UserModel userModel = userUtil.getUser(username);
+        Optional<EmailNotificationModel> emailNotificationModel = emailNotificationRepository.findByCode(code);
 
-        NotificationModel notificationModel = notificationRepository.findByCode(code);
+        if (emailNotificationModel.isPresent()) {
+            EmailNotificationModel currentEmailNotificationModel = emailNotificationModel.get();
 
-        String templateName = notificationModel.getTemplateName();
+            String templateName = currentEmailNotificationModel.getTemplateName();
 
-        if (templateName.equals(EmailTypes.WELCOME.getDescription())) {
-            response = buildWelcomeMailBody(userModel.getName() + " " + userModel.getLastName());
-        } else if (templateName.equals(EmailTypes.PAYMENT.getDescription())) {
-            response = buildPaymentMailBody();
+            if (templateName.equals(EmailTypes.WELCOME.getDescription())) {
+                CustomerModel customerModel = customerService.getCustomer(currentEmailNotificationModel.getRecipientUserId());
+                response = buildWelcomeMailBody(customerModel.getName() + " " + customerModel.getLastName());
+
+            } else if (templateName.equals(EmailTypes.PAYMENT.getDescription())) {
+
+                UserModel userModel = userUtil.getUser(username);
+                List<PaymentModel> paymentModels = paymentService.getPayments(userModel.getEmail());
+
+                response = buildPaymentMailBody(userModel.getEmail(), paymentModels);
+            }
+        } else {
+            response = "El código enviado no existe";
         }
 
         return response;
     }
 
     private String buildWelcomeMailBody(String name) {
-        String parsedText = "";
+        String html = "";
         try {
-            Resource resource = resourceLoader.getResource("classpath:" + welcomeTemplate);
-            File file = resource.getFile();
-            String content = new String(Files.readAllBytes(file.toPath()));
-            parsedText = String.format(content, name);
+            Context context = new Context();
+            context.setVariable("name", name);
+            html = templateEngine.process("welcome", context);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
-        return parsedText;
+        return html;
     }
 
-    private String buildPaymentMailBody() {
-        String parsedText = "";
+    private String buildPaymentMailBody(String name, List<PaymentModel> paymentModel) {
+        String html = "";
         try {
-            Resource resource = resourceLoader.getResource("classpath:" + paymentTemplate);
-            File file = resource.getFile();
-            String content = new String(Files.readAllBytes(file.toPath()));
-            parsedText = String.format(content, "Usuario 1", "Cod 1", "15/02/2020", "15/04/2020");
+            Context context = new Context();
+            context.setVariable("name", name);
+            context.setVariable("payment", paymentModel);
+            html = templateEngine.process("payment", context);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
-        return parsedText;
+        return html;
     }
 }

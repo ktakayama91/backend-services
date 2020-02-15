@@ -19,7 +19,7 @@
     }
 </style>
 <div>
-    <p>Hola, %s.</p>
+    <p><span th:text="'Hola, ' + ${name}"></span></p>
     <p>Resumen de Pago: </p>
     <br>
     <table>
@@ -28,10 +28,10 @@
             <th>Fecha de Transaccion</th>
             <th>Fecha de Pago</th>
         </tr>
-        <tr>
-            <td>%s</td>
-            <td>%s</td>
-            <td>%s</td>
+        <tr th:each="payment : ${payment}">
+            <td th:text="${payment.operationCode}" />
+            <td th:text="${payment.transactionDate}" />
+            <td th:text="${payment.paymentDate}" />
         </tr>
     </table>
 </div>

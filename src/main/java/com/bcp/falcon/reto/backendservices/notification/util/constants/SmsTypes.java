@@ -6,8 +6,8 @@ package com.bcp.falcon.reto.backendservices.notification.util.constants;
  */
 public enum SmsTypes {
 
-    OTP("otp.txt", "S01"),
-    PAYMENT("payment.txt", "S02");
+    OTP("otp.html", "S01"),
+    PAYMENT("sms_payment.html", "S02");
 
     private String code;
 

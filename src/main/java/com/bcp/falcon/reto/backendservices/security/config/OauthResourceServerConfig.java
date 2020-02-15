@@ -26,6 +26,12 @@ public class OauthResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .csrf().ignoringAntMatchers("/h2-console/**")
                 .and().headers().frameOptions().sameOrigin();
 
+        httpSecurity.authorizeRequests()
+                .antMatchers("/v2/api-docs/**", "/swagger-ui.html")
+                .permitAll()
+                .and()
+                .csrf().ignoringAntMatchers("/v2/api-docs/**", "/swagger-ui.html");
+
         httpSecurity
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -38,6 +44,6 @@ public class OauthResourceServerConfig extends ResourceServerConfigurerAdapter {
 
         httpSecurity.authorizeRequests()
                 .antMatchers("/api/falcon/services/security-services/v1/authenticate").permitAll()
-                .anyRequest().authenticated();
+                .and().authorizeRequests().antMatchers("/api/falcon/**").authenticated();
     }
 }

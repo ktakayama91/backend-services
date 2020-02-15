@@ -1,11 +1,13 @@
 package com.bcp.falcon.reto.backendservices.security.expose.web;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 
 import com.bcp.falcon.reto.backendservices.security.business.AuthorizationService;
 import com.bcp.falcon.reto.backendservices.security.expose.web.request.AuthenticationRequest;
 import com.bcp.falcon.reto.backendservices.security.model.AccessToken;
 
+import com.bcp.falcon.reto.backendservices.security.repository.model.UserSessionModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
  * Created on 2/13/20.
  */
 
-@SuppressWarnings("deprecation")
 @RestController
 @RequestMapping("/api/falcon/services/security-services/v1")
 public class AuthorizationRestService {
@@ -29,7 +30,7 @@ public class AuthorizationRestService {
     private AuthorizationService authorizationService;
 
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
-    public AccessToken authorization(@RequestBody AuthenticationRequest authenticationRequest) throws NoSuchAlgorithmException {
+    public AccessToken authorization(@RequestBody AuthenticationRequest authenticationRequest) {
         authorizationService.authenticate(authenticationRequest.getUser(), authenticationRequest.getPassword());
         authorizationService.createUserSession(authenticationRequest.getUser(), authenticationRequest.getPassword());
         AccessToken accessToken = authorizationService.generateToken(authenticationRequest.getUser(), authenticationRequest.getPassword());
@@ -41,13 +42,7 @@ public class AuthorizationRestService {
     public String test() {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String name = auth.getName();
-
-        OAuth2AuthenticationDetails oAuth2AccessToken = (OAuth2AuthenticationDetails)auth.getDetails();
-        oAuth2AccessToken.getTokenValue();
-
-        System.out.printf(oAuth2AccessToken.getTokenValue());
-
+        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
 
         return "It's OK";
     }

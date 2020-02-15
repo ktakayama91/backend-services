@@ -6,8 +6,8 @@ package com.bcp.falcon.reto.backendservices.notification.util.constants;
  */
 public enum EmailTypes {
 
-    WELCOME("welcome.html", "E01"),
-    PAYMENT("payment.html", "E02");
+    WELCOME("welcome", "E01"),
+    PAYMENT("payment", "E02");
 
     private String code;
 

@@ -1,0 +1,7 @@
+version: '3'
+services:
+  backend:
+    image: backend-services:latest
+    build: .
+    ports:
+      - 8080:8080

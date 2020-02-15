@@ -2,6 +2,7 @@ package com.bcp.falcon.reto.backendservices.security.business;
 
 import com.bcp.falcon.reto.backendservices.security.repository.UserSessionRepository;
 
+import com.bcp.falcon.reto.backendservices.security.repository.model.UserSessionModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,7 +21,7 @@ public class AuthorizationUserDetailService implements UserDetailsService {
     private UserSessionRepository userSessionRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserSessionModel loadUserByUsername(String username) throws UsernameNotFoundException {
         return userSessionRepository.findByUsername(username);
     }
 }

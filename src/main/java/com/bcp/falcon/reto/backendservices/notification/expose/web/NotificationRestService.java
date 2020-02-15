@@ -2,9 +2,10 @@ package com.bcp.falcon.reto.backendservices.notification.expose.web;
 
 import com.bcp.falcon.reto.backendservices.notification.business.EmailService;
 import com.bcp.falcon.reto.backendservices.notification.business.SmsService;
-import com.bcp.falcon.reto.backendservices.notification.business.SmsServiceImpl;
+import com.bcp.falcon.reto.backendservices.notification.expose.web.Request.EmailWelcomeRequest;
 import com.bcp.falcon.reto.backendservices.notification.expose.web.Request.SmsPaymentRequest;
-import com.bcp.falcon.reto.backendservices.notification.util.constants.EmailTypes;
+import com.bcp.falcon.reto.backendservices.payment.repository.model.PaymentModel;
+import com.bcp.falcon.reto.backendservices.security.repository.model.UserSessionModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,36 +30,50 @@ public class NotificationRestService {
     @Autowired
     private SmsService smsService;
 
-    @RequestMapping(value = "/email/welcome", method = RequestMethod.GET)
-    public String sendWelcomeEmail() {
+    @RequestMapping(value = "/email/welcome", method = RequestMethod.POST)
+    public String sendWelcomeEmail(@RequestBody EmailWelcomeRequest emailWelcomeRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-        return emailService.sendEmail(username, EmailTypes.WELCOME.getCode());
+        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
+
+        return emailService.sendWelcomeEmail(userSessionModel.getUsername(), emailWelcomeRequest);
     }
 
     @RequestMapping(value = "/email/payment", method = RequestMethod.GET)
     public String sendPaymentEmail() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-        return emailService.sendEmail(username, EmailTypes.PAYMENT.getCode());
+        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
+
+        return emailService.sendPaymentEmail(userSessionModel.getUsername());
     }
 
-    @RequestMapping(value = "/retrieve/{code}", method = RequestMethod.GET)
+    @RequestMapping(value = "/email/retrieve/{code}", method = RequestMethod.GET)
     public String retrieveEmail (@PathVariable String code) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-        return emailService.retrieveEmail(username, code);
+        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
+
+        return emailService.retrieveEmail(userSessionModel.getUsername(), code);
     }
 
     @RequestMapping(value = "/sms/otp", method = RequestMethod.GET)
     public void sendOtpSms() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-        smsService.sendSms(username);
+        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
+        smsService.sendOtpSms(userSessionModel.getUsername());
     }
 
     @RequestMapping(value = "/sms/payment", method = RequestMethod.POST)
     public void sendPaymentSms(@RequestBody SmsPaymentRequest smsPaymentRequest) {
-        smsService.sendSms(smsPaymentRequest);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
+
+        smsService.sendPaymentSms(userSessionModel.getUsername(), smsPaymentRequest);
+    }
+
+    @RequestMapping(value = "/sms/retrieve/{code}", method = RequestMethod.GET)
+    public String retrieveSms (@PathVariable String code) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
+
+        return smsService.retrieveSms(code);
     }
 }

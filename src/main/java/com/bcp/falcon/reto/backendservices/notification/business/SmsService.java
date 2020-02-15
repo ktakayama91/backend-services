@@ -8,7 +8,9 @@ import com.bcp.falcon.reto.backendservices.notification.expose.web.Request.SmsPa
  */
 public interface SmsService {
 
-    void sendSms(String username);
+    void sendOtpSms(String username);
 
-    void sendSms(SmsPaymentRequest smsPaymentRequest);
+    void sendPaymentSms(String username, SmsPaymentRequest smsPaymentRequest);
+
+    String retrieveSms(String code);
 }

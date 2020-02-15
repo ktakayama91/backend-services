@@ -1,3 +1,0 @@
-Codigo Operacion: %s
-Nombre: %s
-Fecha: %s

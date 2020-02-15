@@ -1,7 +1,5 @@
 package com.bcp.falcon.reto.backendservices.notification.business;
 
-import java.io.File;
-import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,7 +20,6 @@ import com.bcp.falcon.reto.backendservices.security.repository.UserOtpRepository
 import com.bcp.falcon.reto.backendservices.security.repository.model.UserOtpModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -159,7 +156,7 @@ public class SmsServiceImpl implements SmsService {
         return text;
     }
 
-    private String buildPaymentMessage(String operationCode, String payerName, String paymentDate) {
+    protected String buildPaymentMessage(String operationCode, String payerName, String paymentDate) {
         String text = "";
         try {
             Context context = new Context();

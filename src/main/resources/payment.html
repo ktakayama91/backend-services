@@ -1,0 +1,37 @@
+<style>
+    body {
+        font-family: Arial;
+    }
+    table {
+        border-collapse: collapse;
+    }
+    table, tr, th, td {
+        border: solid 1px #000;
+    }
+    th {
+        background-color: #f9f939;
+        color: black;
+        font-weight: bold;
+    }
+    th, td {
+        text-align: center;
+        padding: 15px;
+    }
+</style>
+<div>
+    <p>Hola, %s.</p>
+    <p>Resumen de Pago: </p>
+    <br>
+    <table>
+        <tr>
+            <th>Codigo de Operacion</th>
+            <th>Fecha de Transaccion</th>
+            <th>Fecha de Pago</th>
+        </tr>
+        <tr>
+            <td>%s</td>
+            <td>%s</td>
+            <td>%s</td>
+        </tr>
+    </table>
+</div>

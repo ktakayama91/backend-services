@@ -1,0 +1,1 @@
+INSERT INTO user_details (username, password, name, last_name, email, mobile) VALUES ('test@test.com', 'password', 'Test', 'Tester', 'test@test.com', '#########');

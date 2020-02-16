@@ -41,9 +41,6 @@ public class AuthorizationRestService {
     @RequestMapping(value = "/test", method = RequestMethod.GET)
     public String test() {
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
-
         return "It's OK";
     }
 }

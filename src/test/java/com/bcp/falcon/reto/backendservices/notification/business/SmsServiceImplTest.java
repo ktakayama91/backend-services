@@ -22,7 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.Mock;
-import org.springframework.core.io.ResourceLoader;
+import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
 /**
@@ -38,9 +38,6 @@ class SmsServiceImplTest {
 
     @Mock
     private TwilioClient twilioClient;
-
-    @Mock
-    private ResourceLoader resourceLoader;
 
     @Mock
     private OtpServiceImpl otpServiceImpl;
@@ -114,7 +111,7 @@ class SmsServiceImplTest {
         userOtpModel.setOtp("OTP");
         Mockito.when(userOtpRepository.findByNotificationId(Mockito.anyLong())).thenReturn(userOtpModel);
 
-        smsService.retrieveSms("OTP_SMS_CODE");
+        String response = smsService.retrieveSms("OTP_SMS_CODE");
     }
 
     @Test

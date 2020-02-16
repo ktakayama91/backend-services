@@ -33,47 +33,36 @@ public class NotificationRestService {
     @RequestMapping(value = "/email/welcome", method = RequestMethod.POST)
     public String sendWelcomeEmail(@RequestBody EmailWelcomeRequest emailWelcomeRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
-
-        return emailService.sendWelcomeEmail(userSessionModel.getUsername(), emailWelcomeRequest);
+        return emailService.sendWelcomeEmail(auth.getName(), emailWelcomeRequest);
     }
 
     @RequestMapping(value = "/email/payment", method = RequestMethod.GET)
     public String sendPaymentEmail() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
-
-        return emailService.sendPaymentEmail(userSessionModel.getUsername());
+        return emailService.sendPaymentEmail(auth.getName());
     }
 
     @RequestMapping(value = "/email/retrieve/{code}", method = RequestMethod.GET)
     public String retrieveEmail (@PathVariable String code) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
-
-        return emailService.retrieveEmail(userSessionModel.getUsername(), code);
+        return emailService.retrieveEmail(auth.getName(), code);
     }
 
     @RequestMapping(value = "/sms/otp", method = RequestMethod.GET)
     public void sendOtpSms() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
-        smsService.sendOtpSms(userSessionModel.getUsername());
+        smsService.sendOtpSms(auth.getName());
     }
 
     @RequestMapping(value = "/sms/payment", method = RequestMethod.POST)
     public void sendPaymentSms(@RequestBody SmsPaymentRequest smsPaymentRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
-
-        smsService.sendPaymentSms(userSessionModel.getUsername(), smsPaymentRequest);
+        smsService.sendPaymentSms(auth.getName(), smsPaymentRequest);
     }
 
     @RequestMapping(value = "/sms/retrieve/{code}", method = RequestMethod.GET)
     public String retrieveSms (@PathVariable String code) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserSessionModel userSessionModel = (UserSessionModel) auth.getPrincipal();
-
         return smsService.retrieveSms(code);
     }
 }

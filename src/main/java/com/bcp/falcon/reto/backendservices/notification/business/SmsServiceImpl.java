@@ -20,7 +20,6 @@ import com.bcp.falcon.reto.backendservices.security.repository.UserOtpRepository
 import com.bcp.falcon.reto.backendservices.security.repository.model.UserOtpModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
@@ -35,9 +34,6 @@ public class SmsServiceImpl implements SmsService {
 
     @Autowired
     private TwilioClient twilioClient;
-
-    @Autowired
-    private ResourceLoader resourceLoader;
 
     @Autowired
     private OtpServiceImpl otpServiceImpl;
